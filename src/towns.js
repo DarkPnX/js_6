@@ -61,7 +61,7 @@ function loadTowns() {
 function isMatching(full, chunk) {
     let city = full.toUpperCase();
     let localStr = chunk.toUpperCase();
-    if (~city.indexOf(localStr)) {
+    if (~city.indexOf(localStr)) { //если нет совпадений , то ~city.indexOf(localStr) == 0
         return true;
     }else{
         return false;
@@ -76,10 +76,56 @@ const filterBlock = homeworkContainer.querySelector('#filter-block');
 const filterInput = homeworkContainer.querySelector('#filter-input');
 /* Блок с результатами поиска */
 const filterResult = homeworkContainer.querySelector('#filter-result');
+//кнопка повторной загрузки городов
+const restartBtn = homeworkContainer.querySelector('#loading-btn-restart');
+
+let listTowns;
 
 filterInput.addEventListener('keyup', function() {
     // это обработчик нажатия кливиш в текстовом поле
+    let inVal = filterInput.value;
+
+    const resultList = listTowns.filter(town => isMatching(town.name , inVal));
+
+    while(filterResult.lastChild){
+        filterResult.removeChild(filterResult.lastChild);//innerHTML вроде не безопасен, решил так сделать
+    }
+
+    if(!inVal){
+        return;
+    }
+
+    resultList.forEach(town => {
+       const newElem = document.createElement('div');
+       newElem.innerText = town.name;
+       filterResult.appendChild(newElem);
+    });
+
 });
+
+
+restartBtn.addEventListener('click',e =>{
+   e.preventDefault();
+   blockLoadAndError();
+});
+
+
+
+function blockLoadAndError() {
+    loadingBlock.innerText = 'Загрузка...';
+    loadTowns().then(sortTowns => {
+       listTowns = sortTowns;
+       loadingBlock.style.display = 'none';
+       restartBtn.style.display = 'none';
+       filterBlock.style.display = 'block';
+    }).catch(()=>{
+        loadingBlock.innerText = 'Не удалось загрузить города';
+        restartBtn.style.display = 'block';
+    });
+}
+
+blockLoadAndError();
+
 
 export {
     loadTowns,
